@@ -31,12 +31,8 @@ def welcome_message():
 #     else:
 #         print('Failed to send SMS.')
 
-def send_sms(phone_number, message):
-    session = AirmoreSession('10.19.241.17:2333')  # Replace 'your_device_ip_address' with the IP address of your mobile device
-    session.start()
-    service = MessagingService(session)
-    service.send_message(phone_number, message)
-    session.stop()
+def send_sms(phone_number, message, s):
+    s.send_message(phone_number, message)
 
 def index_table(csvreader):
     first_row = next(csvreader)
@@ -46,7 +42,6 @@ def index_table(csvreader):
         table.add_row([index, value], divider=True)
     print(table)
     print("")
-
 
 def print_table(csv_reader, first_name_i, phone_number_i, date_i):
     table = PrettyTable()
@@ -132,10 +127,14 @@ def attendance_text_sender():
         else:
             clear_terminal()
 
+
+    ip_address = input("Enter ip address of your phone (refer to docs): ")
+    session = AirmoreSession(ip_address)
+    service = MessagingService(session)
     for person in send_list:
         print(f"*sending message to {person[0]}*")
         message_to_send = f"{greeting} {person[0]} \n\n" + message
-        send_sms(person[1], message_to_send)
+        send_sms(person[1], message_to_send, service)
         print("")
 
 if __name__ == "__main__":
