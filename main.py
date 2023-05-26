@@ -18,18 +18,9 @@ def file_selector():
 
 def welcome_message():
     print("Auto Texter Script")
+    print('')
     print("Select your .csv file")
     enter = input("Press enter to continue")
-
-# def send_sms(phone_number, message):
-#     pb = Pushbullet('o.dQ75BMOxjgber6nLxVC7RwxyRTHMBTbs')
-
-#     device = pb.devices[1]
-#     push = pb.push_sms(device, phone_number, message)
-#     if push.get('active', True):
-#         print('SMS sent successfully.')
-#     else:
-#         print('Failed to send SMS.')
 
 def send_sms(phone_number, message, s):
     s.send_message(phone_number, message)
@@ -44,8 +35,8 @@ def index_table(csvreader):
     print("")
 
 def print_table(csv_reader, first_name_i, phone_number_i, date_i):
+    clear_terminal()
     table = PrettyTable()
-
     header = next(csv_reader)
     table.field_names = [header[first_name_i], header[phone_number_i], header[date_i]]
 
@@ -60,8 +51,8 @@ def print_table(csv_reader, first_name_i, phone_number_i, date_i):
     return table
 
 def print_filtered_table(csv_reader, send_list, first_name_i, phone_number_i, date_i):
+    clear_terminal()
     table = PrettyTable()
-
     header = next(csv_reader)
     table.field_names = [header[first_name_i], header[phone_number_i], header[date_i]]
 
@@ -72,29 +63,21 @@ def print_filtered_table(csv_reader, send_list, first_name_i, phone_number_i, da
     print("")
 
 def paragraph():
-    print("Please enter your paragraph. Press Enter three times when you're done:\n")
-    lines = []
-    enter_count = 0
+    text = file_selector()
+    with open(text, 'r') as file:
+        file_contents = file.read()
 
-    while enter_count < 3:
-        line = input()
-        if line:
-            lines.append(line)
-        else:
-            enter_count += 1
+    return file_contents
 
-    paragraph = "\n".join(lines)
-    print("\nYou entered the following paragraph:\n")
-    print(paragraph)
-    return paragraph
+#################################################################################
 
 def attendance_text_sender():
     clear_terminal()
     welcome_message()
     csv_file = file_selector()
+    clear_terminal()
     with open(csv_file, 'r') as csvfile:
         csv_reader = csv.reader(csvfile)
-
         index_table(csv_reader)
         csvfile.seek(0)
 
@@ -114,23 +97,54 @@ def attendance_text_sender():
         csvfile.seek(0)
         
         print_filtered_table(csv_reader, send_list, first_name_index, phone_number_index, date_index)
+        correct = input("Is this correct? [y|n] ")
+        while correct not in ["y", "n"]:
+            print("Invalid input")
+            correct = input("Is this correct? [y|n] ")
+        if correct == 'n':
+            exit()
+        print('')
+
 
     while True:
         greeting = input("Enter greeting\neg. Hi, Good morning, Good afternoon, etc.\n")
+        print('')
+        print("Select .txt file with message you would like to send")
+        nothing = input("Press Enter to continue")
         message = paragraph()
         clear_terminal()
         print(f"{greeting}\n\n{message}")
         print("")
+
         yes = input("Send this message? [y|n] ")
-        if (yes == 'y'):
+        while yes not in ["y", "n"]:
+            print("Invalid input")
+            yes = input("Send this message? [y|n] ")
+
+        if yes == 'y':
             break
         else:
             clear_terminal()
 
-
+    clear_terminal()
     ip_address = input("Enter ip address of your phone (refer to docs): ")
     session = AirmoreSession(ip_address)
     service = MessagingService(session)
+    if session.request_authorization():
+        print("Successfully connected to the device")
+    else:
+        print("Failed to connect to the device")
+        exit()
+
+    confirm = input("About to send messages. Would you like to continue? [y|n] ")
+    while confirm not in ["y", "n"]:
+        print("Invalid input")
+        confirm = input("About to send messages. Would you like to continue? [y|n] ")
+    if confirm == 'n':
+        exit()
+
+    clear_terminal()
+
     for person in send_list:
         print(f"*sending message to {person[0]}*")
         message_to_send = f"{greeting} {person[0]} \n\n" + message
